@@ -1,0 +1,68 @@
+[{
+  "_id": {
+    "$oid": "68c13d99aaa7d780831f4830"
+  },
+  "username": "feedback1",
+  "password": "$2b$10$/Mkf/stqwHtdVUZUtaFf7uNytkfGqlkOBDKJYcRK3VU2E0PimwILa",
+  "role": "viewer",
+  "createdAt": {
+    "$date": "2025-09-10T08:58:01.475Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "68c13da9aaa7d780831f4833"
+  },
+  "username": "uploader1",
+  "password": "$2b$10$tQOQ0xzYmAIQtj...J2Va.uf24flAo71YIKfskceHNUAx80kmKX8q",
+  "role": "uploader",
+  "createdAt": {
+    "$date": "2025-09-10T08:58:17.108Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "68c141f3da7cc7509beb2b68"
+  },
+  "username": "admin",
+  "password": "$2b$10$i2WQyB.oO4PBnjtLSAtAO.e8.YxI7.vWtkNmT0g89AxLyR281TzRm",
+  "role": "admin"
+},
+{
+  "_id": {
+    "$oid": "68c14e43f64ddd158633fc00"
+  },
+  "username": "feedback2",
+  "password": "$2b$10$3ivEiDowwwbYo4OrHULrAOPT85jTIU1/R4Y/PbEXgVA3OrS.EdOOi",
+  "role": "viewer",
+  "createdAt": {
+    "$date": "2025-09-10T10:09:07.831Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "68c2b8c842e0cd6bb3e0eae7"
+  },
+  "username": "uploader2",
+  "password": "$2b$10$M.z7eJr0kWudP3cdpqakj.Hw.4S9yT9zSV6QALgJAN4qJ6DADt/Fa",
+  "role": "uploader",
+  "createdAt": {
+    "$date": "2025-09-11T11:55:52.013Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "68c7e3b3fbcff61c0af1d914"
+  },
+  "username": "kal",
+  "password": "$2b$10$F0mzk16Lqd1HawGbi5.MPu.bxcsU7wunc4FQoxWhKtd.hHP1MJeZm",
+  "role": "viewer",
+  "createdAt": {
+    "$date": "2025-09-15T10:00:19.563Z"
+  },
+  "__v": 0
+}]
