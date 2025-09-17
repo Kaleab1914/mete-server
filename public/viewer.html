@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Weather Dashboard - Feedback Viewer</title>
+
+  <!-- Font Awesome (jsDelivr) - no integrity attribute to avoid blocking issues -->
+  <link rel="stylesheet"
+        href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.5.0/css/all.min.css">
+
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif; }
+    body {
+      background: linear-gradient(135deg,#1c38a7 0%,#1c38a7 50%,#1c38a7 100%);
+      min-height: 100vh; padding: 20px; display:flex; justify-content:center; align-items:flex-start; color:#333;
+    }
+    .container { max-width:800px; width:100%; }
+    header { text-align:center; padding:20px 0; margin-bottom:20px; position:relative; }
+    header h1 { color:#fff; font-size:2.2rem; text-shadow:2px 2px 4px rgba(0,0,0,0.3); }
+    .subtitle { color:rgba(255,255,255,0.9); margin-top:6px; }
+
+    .logout-btn {
+      position:absolute; top:20px; right:0;
+      background:rgba(255,255,255,0.2); color:white; border:none; padding:8px 12px; border-radius:6px; cursor:pointer;
+      display:flex; gap:8px; align-items:center;
+    }
+
+    .user-info { position:absolute; top:20px; left:0; color:white; font-size:0.95rem; }
+
+    .dashboard {
+      background:#fff; border-radius:15px; padding:28px; box-shadow:0 15px 30px rgba(0,0,0,0.18);
+    }
+
+    .feedback-section { background:#f9f9f9; border-radius:10px; padding:18px; }
+    .feedback-section h3 { text-align:center; margin-bottom:12px; color:#333; }
+    .feedback-controls { display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; gap:12px; flex-wrap:wrap; }
+    .search-box {
+      display:flex; align-items:center; gap:8px; background:white; border:1px solid #ddd; padding:6px 10px; border-radius:6px; width:260px;
+    }
+    .search-box input { border:none; outline:none; width:100%; font-size:0.95rem; }
+
+    .refresh-btn {
+      background:#1c38a7; color:white; border:none; padding:8px 12px; border-radius:6px; cursor:pointer; display:flex; gap:8px; align-items:center;
+    }
+
+    .feedback-list { background:white; border:1px solid #eee; border-radius:6px; max-height:420px; overflow:auto; padding:6px; }
+    .feedback-item { padding:12px; border-bottom:1px solid #eee; }
+    .feedback-item:last-child { border-bottom:none; }
+    .feedback-header { display:flex; justify-content:space-between; gap:12px; align-items:flex-start; }
+    .left-col { display:flex; flex-direction:column; gap:6px; max-width:72%; }
+    .feedback-name { font-weight:700; color:#1c38a7; display:flex; align-items:center; gap:8px; font-size:1.03rem; }
+    .feedback-email { color:#444; display:flex; align-items:center; gap:8px; font-size:0.95rem; }
+    .feedback-email .email-text { white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:320px; display:inline-block; vertical-align:middle; }
+    .copy-icon {
+      background:transparent; border:none; cursor:pointer; color:#1c38a7; font-size:1rem; padding:6px; border-radius:5px;
+      display:inline-flex; align-items:center; justify-content:center;
+    }
+    .copy-icon:hover { background:rgba(28,56,167,0.08); color:#0f2580; }
+
+    .feedback-date { color:#888; font-size:0.85rem; display:flex; align-items:center; gap:8px; white-space:nowrap; }
+    .feedback-message { margin-top:10px; color:#222; line-height:1.45; font-style:italic; }
+
+    .empty-feedback { text-align:center; padding:30px; color:#666; }
+    .notification {
+      position:fixed; right:18px; top:18px; background:#4CAF50; color:white; padding:12px 16px; border-radius:8px; box-shadow:0 8px 20px rgba(0,0,0,0.12);
+      transform:translateX(120%); transition:transform .25s ease-in-out; z-index:1200;
+    }
+    .notification.show { transform:translateX(0); }
+    .notification.error { background:#F44336; }
+
+    .feedback-count { text-align:center; margin-top:12px; color:#666; font-size:0.95rem; }
+    /* small responsive fix */
+    @media (max-width:640px) {
+      .search-box { width:100%; }
+      .left-col { max-width:60%; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      
+      <h1>Customer Feedback Portal</h1>
+      <p class="subtitle">View and manage customer feedback</p>
+      <button class="logout-btn" id="logoutBtn"><i class="fas fa-sign-out-alt"></i> Logout</button>
+    </header>
+
+    <div class="dashboard">
+      <div class="feedback-section">
+        
+
+        <div class="feedback-controls">
+          <div class="search-box">
+            <i class="fas fa-search" aria-hidden="true"></i>
+            <input id="searchInput" placeholder="Search feedbacks (name, email, message)..." />
+          </div>
+          <button id="refreshBtn" class="refresh-btn"><i class="fas fa-sync-alt"></i> Refresh</button>
+        </div>
+
+        <div id="feedbackList" class="feedback-list">
+          <div class="empty-feedback">
+            <i class="fas fa-comments" style="font-size:36px;color:#ddd;"></i>
+            <p>No feedbacks available</p>
+          </div>
+        </div>
+
+        <div id="feedbackCount" class="feedback-count">Showing 0 feedbacks</div>
+      </div>
+    </div>
+  </div>
+
+  <div id="notification" class="notification" role="status" aria-live="polite" style="display:none"></div>
+
+  <script>
+    // escape text to prevent XSS
+    function escapeHtml(str) {
+      if (!str) return '';
+      return String(str).replace(/[&<>"'`=\/]/g, function(s) {
+        return {
+          '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;', '/': '&#x2F;', '=': '&#x3D;', '`': '&#x60;'
+        }[s];
+      });
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      const token = localStorage.getItem('authToken');
+      const username = localStorage.getItem('username');
+      if (!token) {
+        // not logged in -> go back to login
+        window.location.href = 'index.html';
+        return;
+      }
+      
+      setupEventListeners();
+      loadFeedbacks();
+    });
+
+    function setupEventListeners() {
+      document.getElementById('refreshBtn').addEventListener('click', loadFeedbacks);
+      document.getElementById('searchInput').addEventListener('input', filterFeedbacks);
+      document.getElementById('logoutBtn').addEventListener('click', handleLogout);
+    }
+
+    function handleLogout() {
+      localStorage.removeItem('authToken');
+      localStorage.removeItem('userRole');
+      localStorage.removeItem('username');
+      window.location.href = 'index.html';
+    }
+
+    function showNotification(message, isError = false, ms = 2500) {
+      const n = document.getElementById('notification');
+      n.textContent = message;
+      n.className = 'notification' + (isError ? ' error' : '');
+      n.style.display = 'block';
+      // force reflow then show (ensures animation)
+      void n.offsetWidth;
+      n.classList.add('show');
+      setTimeout(() => {
+        n.classList.remove('show');
+        setTimeout(() => n.style.display = 'none', 250);
+      }, ms);
+    }
+
+    async function loadFeedbacks() {
+      const list = document.getElementById('feedbackList');
+      const countEl = document.getElementById('feedbackCount');
+      const token = localStorage.getItem('authToken');
+
+      list.innerHTML = `<div style="text-align:center;padding:24px;"><i class="fas fa-spinner fa-spin" style="font-size:26px;color:#1c38a7"></i><div>Loading feedbacks...</div></div>`;
+      countEl.textContent = 'Loading...';
+
+      try {
+        const res = await fetch('http://localhost:3000/feedback', {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+
+        if (res.status === 401) {
+          // session expired -> log out
+          handleLogout();
+          return;
+        }
+
+        if (!res.ok) {
+          throw new Error(`Server returned ${res.status}`);
+        }
+
+        const data = await res.json();
+        window.feedbacks = Array.isArray(data) ? data : [];
+        renderFeedbacks(window.feedbacks);
+        countEl.textContent = `Showing ${window.feedbacks.length} feedbacks`;
+      } catch (err) {
+        list.innerHTML = `
+          <div class="empty-feedback">
+            <i class="fas fa-exclamation-triangle" style="font-size:36px;color:#f1a2a2;"></i>
+            <p>Error loading feedbacks. ${escapeHtml(err.message || '')}</p>
+          </div>
+        `;
+        countEl.textContent = 'Error loading feedbacks';
+      }
+    }
+
+    function renderFeedbacks(feedbacks) {
+      const list = document.getElementById('feedbackList');
+      list.innerHTML = '';
+
+      if (!feedbacks || feedbacks.length === 0) {
+        list.innerHTML = `
+          <div class="empty-feedback">
+            <i class="fas fa-comments" style="font-size:36px;color:#ddd;"></i>
+            <p>No feedbacks found</p>
+          </div>`;
+        return;
+      }
+
+      feedbacks.forEach(item => {
+        const itemDiv = document.createElement('div');
+        itemDiv.className = 'feedback-item';
+
+        const header = document.createElement('div');
+        header.className = 'feedback-header';
+
+        const leftCol = document.createElement('div');
+        leftCol.className = 'left-col';
+
+        // Name
+        const nameDiv = document.createElement('div');
+        nameDiv.className = 'feedback-name';
+        nameDiv.innerHTML = `<i class="fas fa-user" aria-hidden="true"></i>&nbsp; ${escapeHtml(item.name || 'Anonymous')}`;
+
+        // Email + copy button
+        const emailDiv = document.createElement('div');
+        emailDiv.className = 'feedback-email';
+        // envelope icon + text
+        const envelope = document.createElement('span');
+        envelope.innerHTML = `<i class="fas fa-envelope" aria-hidden="true"></i>`;
+        const emailText = document.createElement('span');
+        emailText.className = 'email-text';
+        emailText.textContent = item.email || 'No email';
+
+        emailDiv.appendChild(envelope);
+        emailDiv.appendChild(emailText);
+
+        if (item.email) {
+          // create copy icon button (icon-only)
+          const copyBtn = document.createElement('button');
+          copyBtn.className = 'copy-icon';
+          copyBtn.type = 'button';
+          copyBtn.title = 'Copy email';
+          copyBtn.setAttribute('aria-label', 'Copy email');
+
+          // Use FontAwesome copy icon inside the button
+          copyBtn.innerHTML = '<i class="fas fa-copy" aria-hidden="true"></i>';
+
+          copyBtn.addEventListener('click', (ev) => {
+            ev.stopPropagation();
+            copyEmailToClipboard(item.email);
+          });
+
+          emailDiv.appendChild(copyBtn);
+        }
+
+        leftCol.appendChild(nameDiv);
+        leftCol.appendChild(emailDiv);
+
+        // Date
+        const dateDiv = document.createElement('div');
+        dateDiv.className = 'feedback-date';
+        const created = item.createdAt || item.date || item.time || null;
+        const displayDate = created ? new Date(created).toLocaleDateString() : 'No date';
+        dateDiv.innerHTML = `<i class="fas fa-calendar-alt" aria-hidden="true"></i>&nbsp; ${escapeHtml(displayDate)}`;
+
+        header.appendChild(leftCol);
+        header.appendChild(dateDiv);
+
+        // Message
+        const msgDiv = document.createElement('div');
+        msgDiv.className = 'feedback-message';
+        msgDiv.textContent = item.message || '';
+
+        itemDiv.appendChild(header);
+        itemDiv.appendChild(msgDiv);
+
+        list.appendChild(itemDiv);
+      });
+    }
+
+    // Copy helper with fallback
+    function copyEmailToClipboard(email) {
+      if (!email) return showNotification('No email to copy', true);
+      // Try navigator.clipboard first
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(email)
+          .then(() => showNotification(`Copied: ${email}`))
+          .catch(() => fallbackCopy(email));
+      } else {
+        fallbackCopy(email);
+      }
+
+      function fallbackCopy(text) {
+        try {
+          const ta = document.createElement('textarea');
+          ta.value = text;
+          ta.style.position = 'fixed';
+          ta.style.left = '-9999px';
+          document.body.appendChild(ta);
+          ta.select();
+          const ok = document.execCommand('copy');
+          document.body.removeChild(ta);
+          if (ok) showNotification(`Copied: ${text}`);
+          else showNotification('Copy failed', true);
+        } catch (e) {
+          showNotification('Copy not supported', true);
+        }
+      }
+    }
+
+    function filterFeedbacks() {
+      const q = (document.getElementById('searchInput').value || '').trim().toLowerCase();
+      if (!window.feedbacks) return;
+      if (!q) {
+        renderFeedbacks(window.feedbacks);
+        document.getElementById('feedbackCount').textContent = `Showing ${window.feedbacks.length} feedbacks`;
+        return;
+      }
+      const filtered = window.feedbacks.filter(item => {
+        return (item.name && item.name.toLowerCase().includes(q)) ||
+               (item.email && item.email.toLowerCase().includes(q)) ||
+               (item.message && item.message.toLowerCase().includes(q));
+      });
+      renderFeedbacks(filtered);
+      document.getElementById('feedbackCount').textContent =
+        `Showing ${filtered.length} of ${window.feedbacks.length} feedbacks`;
+    }
+  </script>
+</body>
+</html>

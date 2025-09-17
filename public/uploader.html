@@ -1,0 +1,654 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Weather Dashboard - Data Uploader</title>
+
+    <!-- Font Awesome CDN -->
+    <link
+        rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+        integrity="sha512-papY+QX5pCnO84q87BdR4+msQb2uvmcNEfbrkoSZItNNuzStHqol1n0qR+7Mdu5EkkzRPHgfDZ1Ae8Nqtg4Ybg=="
+        crossorigin="anonymous"
+        referrerpolicy="no-referrer"
+    />
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #1c38a7 0%, #1c38a7 50%, #1c38a7 100%);
+            color: #333;
+            min-height: 100vh;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+        }
+
+        .container {
+            max-width: 800px;
+            width: 100%;
+        }
+
+        header {
+            text-align: center;
+            padding: 20px 0;
+            margin-bottom: 20px;
+            position: relative;
+        }
+
+        header h1 {
+            color: white;
+            font-size: 2.2rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .subtitle {
+            color: rgba(255, 255, 255, 0.9);
+            font-size: 1.1rem;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .logout-btn {
+            position: absolute;
+            top: 20px;
+            right: 0;
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 5px;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .logout-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        .user-info {
+            color: white;
+            position: absolute;
+            top: 20px;
+            left: 0;
+            font-size: 0.9rem;
+        }
+
+        .dashboard {
+            background: white;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.2);
+            padding: 30px;
+        }
+
+        /* Server Info Section */
+        .server-info {
+            background: #f9f9f9;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 25px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .server-info h3 {
+            margin-bottom: 15px;
+            color: #333;
+            padding-bottom: 8px;
+            border-bottom: 2px solid #eee;
+            text-align: center;
+        }
+
+        .server-status {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 15px;
+        }
+
+        .status-indicator {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 10px;
+        }
+
+        .status-online {
+            background-color: #4CAF50;
+        }
+
+        .status-offline {
+            background-color: #F44336;
+        }
+
+        /* Upload Section */
+        .upload-section {
+            margin-bottom: 25px;
+        }
+
+        .upload-area {
+            border: 3px dashed #1a2a6c;
+            border-radius: 12px;
+            padding: 40px 20px;
+            text-align: center;
+            transition: all 0.3s;
+            background: #f0f0f0;
+            cursor: pointer;
+            margin-bottom: 20px;
+            position: relative;
+        }
+
+        .upload-area.highlight {
+            background: #e0e0ff;
+            border-color: #1c38a7;
+        }
+
+        .upload-area i {
+            font-size: 3rem;
+            color: #1c38a7;
+            margin-bottom: 15px;
+        }
+
+        .upload-area h3 {
+            margin-bottom: 10px;
+            color: #333;
+        }
+
+        .upload-area p {
+            color: #666;
+            font-size: 0.9rem;
+            margin-bottom: 15px;
+        }
+
+        .file-input {
+            display: none;
+        }
+
+        .file-name {
+            font-weight: bold;
+            color: #1c38a7;
+            margin: 10px 0;
+            min-height: 24px;
+        }
+
+        .upload-btn {
+            background: linear-gradient(to right, #1a2a6c, #1c38a7);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: block;
+            margin: 0 auto;
+            width: 200px;
+        }
+
+        .upload-btn:hover {
+            opacity: 0.9;
+            transform: translateY(-2px);
+        }
+
+        .upload-btn:disabled {
+            background: #cccccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .upload-progress {
+            margin-top: 15px;
+            display: none;
+        }
+
+        .progress-bar {
+            height: 10px;
+            background: #e0e0e0;
+            border-radius: 5px;
+            overflow: hidden;
+            margin-bottom: 5px;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(to right, #4CAF50, #8BC34A);
+            width: 0%;
+            transition: width 0.3s;
+        }
+
+        .progress-text {
+            text-align: center;
+            font-size: 0.8rem;
+            color: #666;
+        }
+
+        .upload-history {
+            background: #f9f9f9;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .upload-history h3 {
+            margin-bottom: 15px;
+            color: #333;
+            padding-bottom: 8px;
+            border-bottom: 2px solid #eee;
+            text-align: center;
+        }
+
+        .history-list {
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+        .history-item {
+            background: white;
+            padding: 10px 15px;
+            border-radius: 6px;
+            border: 1px solid #eee;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .history-file {
+            font-weight: bold;
+            color: #1c38a7;
+        }
+
+        .history-date {
+            color: #888;
+            font-size: 0.8rem;
+        }
+
+        .history-status {
+            display: inline-block;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            font-weight: bold;
+        }
+
+        .status-success {
+            background: #e8f5e9;
+            color: #4CAF50;
+        }
+
+        .status-failed {
+            background: #ffebee;
+            color: #F44336;
+        }
+
+        .empty-history {
+            text-align: center;
+            padding: 20px;
+            color: #666;
+        }
+
+        .empty-history i {
+            font-size: 2rem;
+            margin-bottom: 10px;
+            color: #ddd;
+        }
+
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 0px;
+            padding: 15px 25px;
+            background: #4CAF50;
+            color: white;
+            border-radius: 8px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+            transform: translateX(100%);
+            transition: transform 0.3s ease-out;
+            z-index: 1000;
+        }
+
+        .notification.show {
+            transform: translateX(0);
+        }
+
+        .notification.error {
+            background: #F44336;
+        }
+
+        .role-badge {
+            display: inline-block;
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            margin-left: 10px;
+        }
+
+        .csv-requirements {
+            background: #e3f2fd;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 20px;
+            font-size: 0.9rem;
+        }
+
+        .csv-requirements h4 {
+            margin-bottom: 10px;
+            color: #1c38a7;
+        }
+
+        .csv-requirements ul {
+            padding-left: 20px;
+            color: #666;
+        }
+
+        .csv-requirements li {
+            margin-bottom: 5px;
+        }
+    </style>
+</head>
+<body>
+    <!-- Dashboard Section -->
+    <div class="container">
+        <header>
+            
+            <h1>Weather Data Uploader</h1>
+            <p class="subtitle">Upload CSV files with weather data</p>
+            <button class="logout-btn" id="logoutBtn">
+                <i class="fas fa-sign-out-alt"></i> Logout
+            </button>
+        </header>
+
+        <div class="dashboard">
+           
+
+            <!-- Upload CSV Section -->
+            <div class="upload-section">
+                <div class="upload-area" id="dropArea">
+                    <i class="fas fa-cloud-upload-alt"></i>
+                    <h3>Upload CSV File</h3>
+                    <p>Drag & Drop or Click to Browse</p>
+                    <div class="file-name" id="fileName">No file selected</div>
+                    <input type="file" id="fileInput" class="file-input" accept=".csv" />
+                </div>
+                
+                <div class="upload-progress" id="uploadProgress">
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="progressFill"></div>
+                    </div>
+                    <div class="progress-text" id="progressText">0%</div>
+                </div>
+                
+                <button class="upload-btn" id="uploadBtn" disabled>
+                    <i class="fas fa-upload"></i> Upload File
+                </button>
+
+                <div class="csv-requirements">
+                    <h4>CS File Requirements:</h4>
+                    <ul>
+                        <li>File must be in CSV format</li>
+                        <li>First row should contain column headers</li>
+                        <li>Required columns: City , Min Tempe, Max Temp and Condition for five days</li>
+                        <li>Ensure data is clean and properly formatted</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Upload History -->
+            <div class="upload-history">
+                <h3>Recent Uploads</h3>
+                <div class="history-list" id="historyList">
+                    <div class="empty-history">
+                        <i class="fas fa-history"></i>
+                        <p>No upload history yet</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="notification" id="notification">Notification</div>
+
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const token = localStorage.getItem('authToken');
+        const userRole = localStorage.getItem('userRole');
+        const username = localStorage.getItem('username');
+        
+        if (!token || !userRole) {
+            window.location.href = 'index.html';
+            return;
+        }
+
+        
+
+        checkServerStatus();
+        loadUploadHistory();
+        setupEventListeners();
+    });
+
+    function setupEventListeners() {
+        document.getElementById('logoutBtn').addEventListener('click', handleLogout);
+        document.getElementById('fileInput').addEventListener('change', handleFileSelect);
+        document.getElementById('uploadBtn').addEventListener('click', handleFileUpload);
+
+        const dropArea = document.getElementById('dropArea');
+
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+            dropArea.addEventListener(eventName, preventDefaults, false);
+        });
+
+        ['dragenter', 'dragover'].forEach(eventName => {
+            dropArea.addEventListener(eventName, highlight, false);
+        });
+
+        ['dragleave', 'drop'].forEach(eventName => {
+            dropArea.addEventListener(eventName, unhighlight, false);
+        });
+
+        dropArea.addEventListener('drop', handleDrop, false);
+        dropArea.addEventListener('click', () => {
+            document.getElementById('fileInput').click();
+        });
+    }
+
+    function preventDefaults(e) {
+        e.preventDefault();
+        e.stopPropagation();
+    }
+
+    function highlight() {
+        document.getElementById('dropArea').classList.add('highlight');
+    }
+
+    function unhighlight() {
+        document.getElementById('dropArea').classList.remove('highlight');
+    }
+
+    function handleDrop(e) {
+        const dt = e.dataTransfer;
+        const files = dt.files;
+        if (files.length > 0) handleFiles(files);
+    }
+
+    function handleFiles(files) {
+        const file = files[0];
+        if (file && file.name.endsWith('.csv')) {
+            document.getElementById('fileName').textContent = `Selected: ${file.name}`;
+            document.getElementById('uploadBtn').disabled = false;
+            window.selectedFile = file;
+        } else {
+            showNotification('Please select a valid CSV file.', true);
+            document.getElementById('fileName').textContent = 'No file selected';
+            document.getElementById('uploadBtn').disabled = true;
+        }
+    }
+
+    function handleFileSelect(event) {
+        const file = event.target.files[0];
+        handleFiles([file]);
+
+        // **Reset input so same file can be selected again**
+        document.getElementById("fileInput").value = "";
+    }
+
+    function handleFileUpload() {
+        const file = window.selectedFile;
+        if (!file) {
+            showNotification('Please select a file first.', true);
+            return;
+        }
+
+        const token = localStorage.getItem('authToken');
+        const formData = new FormData();
+        formData.append('csvFile', file);
+
+        const progressElement = document.getElementById('uploadProgress');
+        const progressFill = document.getElementById('progressFill');
+        const progressText = document.getElementById('progressText');
+        const uploadBtn = document.getElementById('uploadBtn');
+
+        progressElement.style.display = 'block';
+        uploadBtn.disabled = true;
+
+        fetch('http://localhost:3000/upload', {
+            method: 'POST',
+            headers: { 'Authorization': `Bearer ${token}` },
+            body: formData
+        })
+        .then(res => {
+            if (res.status === 401) {
+                handleLogout();
+                throw new Error('Session expired. Please login again.');
+            }
+            return res.json();
+        })
+        .then(data => {
+            simulateUploadProgress(progressFill, progressText, () => {
+                progressElement.style.display = 'none';
+                uploadBtn.disabled = false;
+                showNotification(`File uploaded successfully! Processed ${data.records || 0} records.`);
+                document.getElementById('fileName').textContent = 'No file selected';
+                window.selectedFile = null;
+
+                // **Reset input to allow re-upload of same file**
+                document.getElementById("fileInput").value = "";
+
+                addToUploadHistory(file.name, true);
+                loadUploadHistory();
+            });
+        })
+        .catch((error) => {
+            progressElement.style.display = 'none';
+            uploadBtn.disabled = false;
+            showNotification(error.message || 'Error uploading file.', true);
+
+            addToUploadHistory(file.name, false);
+            loadUploadHistory();
+        });
+    }
+
+    function simulateUploadProgress(progressFill, progressText, callback) {
+        let progress = 0;
+        const interval = setInterval(() => {
+            progress += 5;
+            progressFill.style.width = `${progress}%`;
+            progressText.textContent = `${progress}%`;
+
+            if (progress >= 100) {
+                clearInterval(interval);
+                setTimeout(callback, 300);
+            }
+        }, 100);
+    }
+
+    function addToUploadHistory(filename, success) {
+        let history = JSON.parse(localStorage.getItem('uploadHistory') || '[]');
+        history.unshift({
+            filename: filename,
+            date: new Date().toISOString(),
+            status: success ? 'success' : 'failed'
+        });
+        if (history.length > 5) history = history.slice(0, 5);
+        localStorage.setItem('uploadHistory', JSON.stringify(history));
+    }
+
+    function loadUploadHistory() {
+        const historyList = document.getElementById('historyList');
+        const history = JSON.parse(localStorage.getItem('uploadHistory') || '[]');
+
+        if (history.length === 0) {
+            historyList.innerHTML = `
+                <div class="empty-history">
+                    <i class="fas fa-history"></i>
+                    <p>No upload history yet</p>
+                </div>
+            `;
+            return;
+        }
+
+        historyList.innerHTML = '';
+        history.forEach(item => {
+            const div = document.createElement('div');
+            div.classList.add('history-item');
+            const date = new Date(item.date).toLocaleDateString();
+            div.innerHTML = `
+                <div>
+                    <div class="history-file">${item.filename}</div>
+                    <div class="history-date">Uploaded on ${date}</div>
+                </div>
+                <span class="history-status ${item.status === 'success' ? 'status-success' : 'status-failed'}">
+                    ${item.status === 'success' ? 'Success' : 'Failed'}
+                </span>
+            `;
+            historyList.appendChild(div);
+        });
+    }
+
+    function handleLogout() {
+        localStorage.removeItem('authToken');
+        localStorage.removeItem('userRole');
+        localStorage.removeItem('username');
+        window.location.href = 'index.html';
+    }
+
+    function checkServerStatus() {
+        const token = localStorage.getItem('authToken');
+        fetch('http://localhost:3000/upload', {
+            method: 'HEAD',
+            headers: { 'Authorization': `Bearer ${token}` }
+        })
+        .then(res => {
+            if (!res.ok && res.status === 401) {
+                handleLogout();
+            }
+        })
+        .catch(() => console.warn("Server is offline"));
+    }
+
+    function showNotification(message, isError = false) {
+        const notification = document.getElementById('notification');
+        notification.textContent = message;
+        notification.className = isError ? 'notification error' : 'notification';
+        notification.classList.add('show');
+        setTimeout(() => notification.classList.remove('show'), 3000);
+    }
+</script>
+
+</body>
+</html>

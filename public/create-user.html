@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Create User</title>
+
+    <link 
+        rel="stylesheet" 
+        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" 
+    />
+
+    <style>
+        body {
+            background: linear-gradient(135deg, #1c38a7, #1c38a7);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+        }
+
+        .form-container {
+            max-width: 400px;
+            width: 100%;
+            padding: 30px;
+            background: #fff;
+            border-radius: 12px;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+        }
+
+        .form-container h2 {
+            text-align: center;
+            margin-bottom: 20px;
+            color: #333;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 6px;
+        }
+
+        .form-group input, 
+        .form-group select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            outline: none;
+        }
+
+        .btn {
+            width: 100%;
+            padding: 12px;
+            background: #1c38a7;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: 0.3s;
+        }
+
+        .btn:hover {
+            background: #142b84;
+        }
+
+        #message {
+            text-align: center;
+            margin-top: 15px;
+            font-size: 0.95rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="form-container">
+        <h2>Create New User</h2>
+        <form id="createUserForm">
+            <div class="form-group">
+                <label>Username</label>
+                <input type="text" id="username" required />
+            </div>
+
+            <div class="form-group">
+                <label>Password</label>
+                <input type="password" id="password" required />
+            </div>
+
+            <div class="form-group">
+                <label>Role</label>
+                <select id="role" required>
+                    <option value="viewer">Viewer</option>
+                    <option value="uploader">Uploader</option>
+                </select>
+            </div>
+
+            <button type="submit" class="btn">Create User</button>
+            <div id="message"></div>
+        </form>
+    </div>
+
+    <script>
+        document.getElementById("createUserForm").addEventListener("submit", async function(e) {
+            e.preventDefault();
+
+            const username = document.getElementById("username").value.trim();
+            const password = document.getElementById("password").value.trim();
+            const role = document.getElementById("role").value;
+            const messageDiv = document.getElementById("message");
+
+            try {
+                const response = await fetch("http://localhost:3000/register", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ username, password, role }),
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    messageDiv.style.color = "green";
+                    messageDiv.textContent = data.message;
+                    document.getElementById("createUserForm").reset();
+                } else {
+                    messageDiv.style.color = "red";
+                    messageDiv.textContent = data.error;
+                }
+            } catch (error) {
+                messageDiv.style.color = "red";
+                messageDiv.textContent = "Server error. Please try again later.";
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Weather Dashboard - Admin Panel</title>
+
+    <!-- Font Awesome CDN -->
+    <link 
+        rel="stylesheet" 
+        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" 
+        integrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw==" 
+        crossorigin="anonymous" 
+        referrerpolicy="no-referrer" 
+    />
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #1c38a7 0%, #1c38a7 50%, #1c38a7 100%);
+            color: #333;
+            min-height: 100vh;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .admin-container {
+            max-width: 1000px;
+            width: 100%;
+        }
+
+        header {
+            text-align: center;
+            padding: 20px 0;
+            margin-bottom: 30px;
+            position: relative;
+        }
+
+        header h1 {
+            color: white;
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .subtitle {
+            color: rgba(255, 255, 255, 0.9);
+            font-size: 1.1rem;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .logout-btn {
+            position: absolute;
+            top: 20px;
+            right: 0;
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 5px;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .logout-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        .user-info {
+            color: white;
+            position: absolute;
+            top: 20px;
+            left: 0;
+            font-size: 0.9rem;
+        }
+
+        .dashboard {
+            background: white;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.2);
+            padding: 40px;
+        }
+
+        .admin-options {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 25px;
+        }
+
+        .option-card {
+            background: #f9f9f9;
+            border-radius: 12px;
+            padding: 30px;
+            text-align: center;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 220px;
+        }
+
+        .option-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+            background: #f0f4ff;
+        }
+
+        .option-icon {
+            width: 70px;
+            height: 70px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 20px;
+            font-size: 1.8rem;
+        }
+
+        .icon-create {
+            background: #e3f2fd;
+            color: #1976d2;
+        }
+
+        .icon-upload {
+            background: #e8f5e9;
+            color: #388e3c;
+        }
+
+        .icon-feedback {
+            background: #fff3e0;
+            color: #f57c00;
+        }
+
+        .option-card h3 {
+            margin-bottom: 10px;
+            color: #333;
+            font-size: 1.4rem;
+        }
+
+        .option-card p {
+            color: #666;
+            font-size: 0.95rem;
+            line-height: 1.5;
+        }
+
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 0px;
+            padding: 15px 25px;
+            background: #4CAF50;
+            color: white;
+            border-radius: 8px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+            transform: translateX(100%);
+            transition: transform 0.3s ease-out;
+            z-index: 1000;
+        }
+
+        .notification.show {
+            transform: translateX(0);
+        }
+
+        .notification.error {
+            background: #F44336;
+        }
+
+        @media (max-width: 768px) {
+            .admin-options {
+                grid-template-columns: 1fr;
+            }
+            
+            header h1 {
+                font-size: 2rem;
+            }
+            
+            .user-info, .logout-btn {
+                position: relative;
+                top: 0;
+                margin-bottom: 15px;
+            }
+            
+            header {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                gap: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    
+    <div class="admin-container">
+        <header>
+            
+            <h1>Admin Dashboard</h1>
+            <p class="subtitle">Manage all system operations from one place</p>
+            <button class="logout-btn" id="logoutBtn">
+                <i class="fas fa-sign-out-alt"></i> Logout
+            </button>
+        </header>
+
+        <div class="dashboard">
+            <div class="admin-options">
+                <!-- Create User -->
+                <div class="option-card" id="createUserCard">
+                    <div class="option-icon icon-create">
+                        <i class="fas fa-user-plus"></i>
+                    </div>
+                    <h3>Create User</h3>
+                    <p>Create new users and assign roles (Viewer or Uploader).</p>
+                </div>
+
+                <!-- Upload File -->
+                <div class="option-card" id="uploadFileCard">
+                    <div class="option-icon icon-upload">
+                        <i class="fas fa-file-upload"></i>
+                    </div>
+                    <h3>Upload File</h3>
+                    <p>Upload CSV files with weather data to the system.</p>
+                </div>
+
+                <!-- View Feedback -->
+                <div class="option-card" id="viewFeedbackCard">
+                    <div class="option-icon icon-feedback">
+                        <i class="fas fa-comments"></i>
+                    </div>
+                    <h3>View Feedbacks</h3>
+                    <p>Access and manage all user feedback submissions.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="notification" id="notification">Notification</div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const token = localStorage.getItem('authToken');
+            const userRole = localStorage.getItem('userRole');
+            const username = localStorage.getItem('username');
+            
+            if (!token || userRole !== 'admin') {
+                window.location.href = '/';
+                return;
+            }
+
+            
+
+            document.getElementById('createUserCard').addEventListener('click', () => {
+                window.location.href = '/create-user';
+            });
+
+            document.getElementById('uploadFileCard').addEventListener('click', () => {
+                window.location.href = '/uploader';
+            });
+
+            document.getElementById('viewFeedbackCard').addEventListener('click', () => {
+                window.location.href = '/viewer';
+            });
+
+            document.getElementById('logoutBtn').addEventListener('click', () => {
+                localStorage.removeItem('authToken');
+                localStorage.removeItem('userRole');
+                localStorage.removeItem('username');
+                window.location.href = '/';
+            });
+        });
+    </script>
+</body>
+</html>
